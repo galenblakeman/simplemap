@@ -1,0 +1,197 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Map Test</title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+    <style>
+        #map {
+            height: 100%;
+            margin: 0px;
+            padding: 0px;
+        }
+        #gmap {
+            height: 100%;
+            margin: 0px;
+            padding: 0px;
+            z-index: 1;
+        }
+
+        #gp-image {
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+            margin: 0px;
+            padding: 0px;
+            z-index: 0;
+            background-color: #eeeeee;
+        }
+
+        #olmap {
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+            margin: 0px;
+            padding: 0px;
+            z-index: 2;
+        }
+
+        .ol-scale-line {
+            background: rgba(255,255,255,.3);
+            border-radius: 4px;
+            bottom: 20px;
+            left: 8px;
+            padding: 2px;
+            position: absolute;
+        }
+
+        .ol-scale-line-inner {
+            border: 1px solid #000;
+            border-top: none;
+            color: #000;
+            font-size: 14px;
+            text-align: center;
+            margin: 1px;
+            will-change: contents, width;
+        }
+
+        .ol-overlay-container {
+            will-change: left,right,top,bottom;
+        }
+
+        .ol-unsupported {
+            display: none;
+        }
+
+        .ol-viewport .ol-unselectable {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+        }
+
+        .ol-control {
+            position: absolute;
+            background-color: rgba(255,255,255,0.4);
+            border-radius: 4px;
+            padding: 2px;
+        }
+
+        /*For Lasso drag rectangle style*/
+        .ol-lasso-box {
+            border: 2px solid rgba(0, 0, 198, 0.8) !important;
+            background-color: rgba(255,255,255,0.4);
+        }
+
+        /*For ctrl+drag zoom in rectangle style*/
+        .ol-dragzoom {
+            border: 2px solid red !important;
+            background-color: rgba(255,255,255,0.4);
+        }
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+    <script type="text/javascript" charset="utf-8" src="/scripts/ol-debug.js"></script>
+</head>
+<body>
+    <div id="map" class="map">
+        <div id="gmap"></div>
+        <div id="gp-image"></div>
+        <div id="olmap" class="fill"></div>
+    </div>
+    <script>
+        var apiKeyParam = "&client=gme-vermeermanufacturing1";
+        var gmap, olView, olMap, olLayer, olSource;
+        let wktFormat = new ol.format.WKT();
+
+        olView = new ol.View({
+            center: [-10603491.444917524, 4720215.6424461715],
+            zoom: 19,
+            minZoom: 1,
+            maxZoom: 20,
+            projection: 'EPSG:900913'
+        });
+
+        olMap = new ol.Map({
+            target: 'olmap',
+            view: olView
+        });
+
+        var loadVectorLayer = function () {
+            olSource = new ol.source.Vector();
+            olLayer = new ol.layer.Vector({
+                source: olSource,
+                minResolution: 0,
+                maxResolution: 19.109257068634033
+            });
+            olMap.addLayer(olLayer);
+            var feature = wktFormat.readFeature("LINESTRING(-95.25328472256658 38.99007078973352,-95.25184974074361 38.990252163655356)", {
+                dataProjection: 'EPSG:4326',
+                featureProjection: 'EPSG:900913'
+            });
+            feature.setStyle(new ol.style.Style({
+                stroke: new ol.style.Stroke({
+                    width: 10, color: 'rgba(255, 0, 0, 1)'
+                }),
+                zIndex: 4
+            }));
+            olSource.addFeature(feature);
+        };
+
+
+        window.GoogleCallback = function () {
+            var mapOptions = {
+                zoom: 19,
+                center: { lat: -34.397, lng: 150.644 },
+                disableDefaultUI: false,
+                keyboardShortcuts: false,
+                draggable: false,
+                disableDoubleClickZoom: true,
+                scrollwheel: false,
+                mapTypeId: google.maps.MapTypeId.HYBRID,
+                tilt: 0,
+                zoomControl: false,
+                mapTypeControl: false,
+                scaleControl: false,
+                streetViewControl: false,
+                rotateControl: false,
+                fullscreenControl: false
+            };
+            gmap = new google.maps.Map(document.getElementById('gmap'), mapOptions);
+
+            olView.on('change:center', function () {
+                var center = ol.proj.transform(
+                    olView.getCenter(),
+                    'EPSG:900913',
+                    'EPSG:4326'
+                );
+                gmap.setCenter(new google.maps.LatLng(center[1], center[0]));
+            });
+
+            olView.on('change:resolution', function () {
+                gmap.setZoom(olView.getZoom());
+            });
+
+            olView.setCenter([-10603491.444917524, 4720215.6424461715]);
+
+            loadVectorLayer();
+        }
+
+        var s = document.createElement("script");
+        s.type = "text/javascript";
+        s.src = "//maps.googleapis.com/maps/api/" +
+            "js?v=3.34&libraries=places&callback=GoogleCallback" + apiKeyParam;
+        document.head.appendChild(s);
+    </script>
+</body>
+</html>
