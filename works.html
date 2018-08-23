@@ -39,6 +39,20 @@
             padding: 0px;
             z-index: 2;
         }
+		
+		#debugDiv {
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 250PX;
+            height: 250PX;
+            margin: 0px;
+            font-size: 8px;
+            padding: 0px;
+            z-index: 4;
+            overflow: scroll;
+            background: rgba(255,255,255,1);
+        }
 
         .ol-scale-line {
             background: rgba(255,255,255,.3);
@@ -110,6 +124,19 @@
         <div id="olmap" class="fill"></div>
     </div>
     <script>
+		if (typeof console != "undefined")
+            if (typeof console.log != 'undefined')
+                console.olog = console.log;
+            else
+                console.olog = function () { };
+
+        console.log = function (message) {
+            console.olog(message);
+            var debugDiv = document.getElementById('debugDiv');
+            debugDiv.innerHTML += '<p>' + message + '</p>';
+            debugDiv.scrollTop = debugDiv.scrollHeight;
+        };
+        console.error = console.debug = console.info = console.log;
         var apiKeyParam = "&client=gme-vermeermanufacturing1";
         var gmap, olView, olMap, olLayer, olSource;
         let wktFormat = new ol.format.WKT();
@@ -175,10 +202,12 @@
                     'EPSG:900913',
                     'EPSG:4326'
                 );
+				console.log("setCenter:" + center);
                 gmap.setCenter(new google.maps.LatLng(center[1], center[0]));
             });
 
             olView.on('change:resolution', function () {
+			console.log("setZoom:" + olView.getZoom());
                 gmap.setZoom(olView.getZoom());
             });
 
